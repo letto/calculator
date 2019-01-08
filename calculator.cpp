@@ -82,26 +82,29 @@ int main(int argc,char* argv[]) {
 		    valid = false;
             }
 
-	    switch( operation[0]) {
+	    op = operation[0];
+	    if( operation.length() == 2) {
+		switch( op) {
 		case '*':
 		    if( operation[1] == '*') {
 			op = 'p';
 		    }
-		break;
-	    case '>':
-		if( operation[1] == '>') {
-		    op = 'r';
-		}
-		break;
-	    case '<':
-		if( operation[1] == '<') {
-		    op = 'l';
-		}
-		break;
+		    break;
+		case '>':
+		    if( operation[1] == '>') {
+			op = 'r';
+		    }
+		    break;
+		case '<':
+		    if( operation[1] == '<') {
+			op = 'l';
+		    }
+		    break;
 		default:
-		    op = operation[0];
-	    } 
-	    // cout << "Operation is: " << operation << endl << "Op is: " << op << endl;
+		    cout << "Warning: code should never be reached!" << endl;
+		}
+		// cout << "Operation is: " << operation << endl << "Op is: " << op << endl;
+	    }
 	}
 
 	vector<double> elements;
