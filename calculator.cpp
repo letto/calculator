@@ -61,38 +61,48 @@ double do_operation( string operation) {
         std::istringstream iss( operation);
         char op;
         {
-            iss >> operation;
+            string operate;
+            iss >> operate;
 
-            if( operation.length() > 2) {
-                cerr << "Unrecognized operation: " << operation <<"\n";
-                throw "Unrecognized operation: " + operation + "\n";
+            if( operate.length() > 2) {
+                cerr << "Unrecognized operation: " << operate <<"\n";
+                throw "Unrecognized operation of length 3 or greater";
             }
 
-            op = operation[0];
-            if( operation.length() == 2) {
+            op = operate[0];
+            if( operate.length() == 2) {
+                // cerr << "Operation: " << operate << endl;
                 switch( op) {
                     case '*':
-                        if( operation[1] == '*') {
+                        if( operate[1] == '*') {
                             op = 'p';
                         } else {
-			    // cerr << "Operation: " << operation << endl;
-			    throw "Unrecognized operation: ";
-			}
+                            throw "Unrecognized operation starting with *";
+                        }
                         break;
                     case '>':
-                        if( operation[1] == '>') {
+                        if( operate[1] == '>') {
                             op = 'r';
+                        } else {
+                            cerr << "Operation is: " << operate << endl;
+                            throw "Unrecognized operation starting with >";
                         }
                         break;
                     case '<':
-                        if( operation[1] == '<') {
+                        if( operate[1] == '<') {
                             op = 'l';
+                        } else {
+                            cerr << "Operation is: " << operate << endl;
+                            throw "Unrecognized operation starting with <";
                         }
                         break;
                     default:
-                        cerr << "Warning: code should never be reached!" << endl;
+                        cerr << "Operation is: " << operate << endl;
+                        throw "Unrecognized operation.";
                 }
-                // cout << "Operation is: " << operation << endl << "Op is: " << op << endl;
+                /* cout << "Operation is: " << operation << endl;
+                cout << "Operate is: " << operate << endl;
+                cout << "Op is: " << op << endl; */
             }
         }
 
@@ -100,14 +110,33 @@ double do_operation( string operation) {
         while( iss) {
             string out;
             iss >> out;
-            if( out.find_first_not_of("().-+0123456789") != string::npos) {
-                // TODO: crashes when encountered
-                throw "Element " + out + " is not a number.\n";
-            }
-            if(iss) {
-                elements.push_back( strtod(out.c_str(), nullptr));
-                /* cout << "Element " << strtod(out.c_str(), nullptr)
-                 *  << " added to the elements vector" << endl; */
+
+            switch( out[0]) {
+                case '(': {
+                    string s,newop;
+                    iss >> s;
+                    while( s != ")" ) {
+                        newop += " ";
+                        newop += s;
+                        iss >> s;
+                    }
+                    // cout << "newop: " << newop << endl;
+                    elements.push_back( do_operation( newop));
+                    break;
+                }
+                case ')':
+                    cerr << "Warning: ) reached as operator " << endl;
+                    break;
+                default:
+                    if( out.find_first_not_of(".-+0123456789") != string::npos) {
+                        cout << out << " should be a number" << endl;
+                        throw "Element is not a number.";
+                    }
+                    if(iss) {
+                        elements.push_back( strtod(out.c_str(), nullptr));
+                        /* cout << "Element " << strtod(out.c_str(), nullptr)
+                        *  << " added to the elements vector" << endl; */
+                    }
             }
         }
 
@@ -147,10 +176,9 @@ double do_operation( string operation) {
             case '/':
                 res = elements[0];
                 for( int i = 1; i < elements.size(); ++i) {
-                    if( elements[i] != 0) {
-                        res /= elements[i];
-                    } else {
-                        throw "Error: Division by 0.";
+                    res /= elements[i];
+                    if( elements[i] == 0) {
+                        cerr << "Warning: Division by 0" << endl;
                     }
                 }
                 break;
@@ -209,14 +237,16 @@ double do_operation( string operation) {
             }
             break;
             case '(':
-                return do_operation( operation);
+                cerr << "Warning: '(' reached as operation" << endl;
+                // return do_operation( operation);
             break;
             case ')':
+                cerr << "Warning: ')'reached as operation" << endl;
                 return res;
             break;
             default:
-		// cerr << "Switch( op) default reached." << endl;
-                throw "Unrecognized operation: " + op;
+                cerr << "Operation: " << operation << endl;
+                throw "Unrecognized operation in swich(op) default";
         }
         return res;
     }
@@ -242,10 +272,10 @@ int main(int argc,char* argv[]) {
 
             res = do_operation( operation);
         } catch( const char* msg) {
-	    if( msg) {
-		cerr << "Error message: " << msg << endl;
-		continue;
-	    }
+            if( msg) {
+                cerr << "Exception encountered: " << msg << endl;
+                continue;
+            }
         }
         cout << "Result: " << res << endl;
     }
